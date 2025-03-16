@@ -1,0 +1,2564 @@
+---
+title: "初老毕业论文代码"
+output: html_document
+date: "2023-11-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+#投行的并购之路
+```{r}
+光源资本-本硕复旦大学管理学院的毕业校友；金融行业其实加班比较严重，，除非是外资的好一点点
+中国并购市场趋势，FA专业投行介入与投资/融资，，fa介入大概在20-30之间，有些交易，fa无法参与到这笔交易当中。
+ipo退出（73%），回购（14%），并购退出（6%），比较好的选择。财富给了人很多选择。
+更多的运营和市场推广职能，，，
+DCF金融定价模型
+能够做什么赋能，然后让它升值？？？？？MBA/数据科学家-----外资投行/跨境并购/
+  人才画像，不同机构有其在市场上生存的独特优势，外资投行海外渠道很多，主要人员在海外和香港，，更多服务于中国企业去做跨境并购。提供融资的市场条件，在海外有很大的网络。。；对FA投行来讲，优势是与中国的企业家走的更近，
+
+#并购人才画像是怎么样的？？？私募股权做投资，招一些产业带动就业和税收，整个下行的周期
+找到自己喜欢且愿意投入的一个工作；；这样才会有耐心，它不是6-7个月才出结果的，一般都是一两年的周期项目，他不是有正反馈的事情。你愿意花时间投入，不反感做这个事情，花时间投入和自己感兴趣的工作；宝洁、联合利华；；；
+它有没有基本面，至少愿意出一个合理的价格去买。。。
+
+给大家什么建议；破产重组项目，中国不好做。
+日常实习，最快的逻辑理解相关行业，案头研究，行业研究报告，愿意去教，获得成长。
+
+
+
+
+```
+getwd()
+#思路清晰-----C/M分型
+```{r}
+# 定义文件的 URL 和本地保存路径
+url <- "https://enterotype.embl.de/MetaHIT_SangerSamples.genus.txt"
+destfile <- "/Users/liuyizhou/Downloads/MetaHIT_SangerSamples.genus.txt"  # 本地保存路径
+
+# 使用 download.file 函数下载文件
+download.file(url, destfile, method = "curl")
+
+# 检查文件是否成功下载
+if (file.exists(destfile)) {
+  print("文件下载成功")
+} else {
+  print("文件下载失败")
+}
+
+
+
+```
+```{r}
+getwd()
+data=read.table("MetaHIT_SangerSamples.genus.txt", header=T, row.names=1, dec=".", sep="\t")
+data=data[-1,]
+JSD<- function(x,y) sqrt(0.5 * KLD(x, (x+y)/2) + 0.5 * KLD(y, (x+y)/2))
+KLD <- function(x,y) sum(x * log(x/y))
+
+ dist.JSD <- function(inMatrix, pseudocount=0.000001, ...) {
+	KLD <- function(x,y) sum(x *log(x/y))
+	JSD<- function(x,y) sqrt(0.5 * KLD(x, (x+y)/2) + 0.5 * KLD(y, (x+y)/2))
+	matrixColSize <- length(colnames(inMatrix))
+	matrixRowSize <- length(rownames(inMatrix))
+	colnames <- colnames(inMatrix)
+	resultsMatrix <- matrix(0, matrixColSize, matrixColSize)
+        
+  inMatrix = apply(inMatrix,1:2,function(x) ifelse (x==0,pseudocount,x))
+
+	for(i in 1:matrixColSize) {
+		for(j in 1:matrixColSize) { 
+			resultsMatrix[i,j]=JSD(as.vector(inMatrix[,i]),
+			as.vector(inMatrix[,j]))
+		}
+	}
+	colnames -> colnames(resultsMatrix) -> rownames(resultsMatrix)
+	as.dist(resultsMatrix)->resultsMatrix
+	attr(resultsMatrix, "method") <- "dist"
+	return(resultsMatrix) 
+	data.dist=dist.JSD(data)
+```
+
+
+
+
+
+#微生物组贝塔多样性差异分析+置换检验（999次）
+
+#单个变量-多元逐步回归图片
+
+#单个变量-PCA和年龄的关系
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+#df <- read_excel("./剔除离群值.xlsx", sheet = 4)  # 替换"your_file.xlsx"为你的文件名
+# 读取 Excel 文件
+file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/图1 PCA.xlsx"
+df <- read_excel(file_path, sheet = "Sheet1")
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+library(ggpubr) # 确保已经安装了 ggpubr 包
+
+# 假设 'base_var' 和 'target_var' 是变量名称的字符串形式
+base_var <- "真实年龄"  # 比如 'Age'
+target_var <- "第一主成分"  # 比如 'Collagen_Density'
+
+# 使用 ggscatter 从 ggpubr 包来绘图
+p <- ggscatter(df, x = base_var, y = target_var,
+                add = "reg.line", conf.int = TRUE,
+                add.params = list(color = "#C388FE", fill = "#D1B6E1", size = 1),  # 自定义回归线的颜色
+                cor.coef = TRUE, cor.method = "spearman") +
+     xlab(colnames(df)[1]) +  # x轴标签使用 base_var 的列名
+     ylab(colnames(df)[which(colnames(df) == target_var)]) +  # y轴标签使用 target_var 的列名
+     theme(text = element_text(family = "Songti"),  # 设置全局字体
+           axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+           axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+
+# 绘制图形
+print(p)
+
+ pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+```
+
+
+
+####单个变量的图
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+#df <- read_excel("./剔除离群值.xlsx", sheet = 4)  # 替换"your_file.xlsx"为你的文件名
+# 读取 Excel 文件
+file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/图2 多元逐步回归预测.xlsx"
+df <- read_excel(file_path, sheet = "Sheet1")
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+library(ggpubr) # 确保已经安装了 ggpubr 包
+
+# 假设 'base_var' 和 'target_var' 是变量名称的字符串形式
+base_var <- "真实年龄"  # 比如 'Age'
+target_var <- "预测年龄"  # 比如 'Collagen_Density'
+
+# 使用 ggscatter 从 ggpubr 包来绘图
+p <- ggscatter(df, x = base_var, y = target_var,
+                add = "reg.line", conf.int = TRUE,
+                add.params = list(color = "#C388FE", fill = "#D1B6E1", size = 1),  # 自定义回归线的颜色
+                cor.coef = TRUE, cor.method = "spearman") +
+     xlab(colnames(df)[1]) +  # x轴标签使用 base_var 的列名
+     ylab(colnames(df)[which(colnames(df) == target_var)]) +  # y轴标签使用 target_var 的列名
+     theme(text = element_text(family = "Songti"),  # 设置全局字体
+           axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+           axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+
+# 绘制图形
+print(p)
+
+ pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+
+```
+
+
+
+
+
+#孟德尔随机化-因果推断
+```{r}
+# 安装并加载必要的包
+
+# 安装并加载必要的包
+#install.packages("devtools")
+#devtools::install_github("MRCIEU/TwoSampleMR")
+#install.packages("dplyr")
+
+library(TwoSampleMR)
+library(dplyr)
+
+# 生成模拟数据
+set.seed(42)
+
+# 样本量
+n <- 1000
+
+# 模拟基因变异（G）
+G <- rbinom(n, 2, 0.3)
+
+# 模拟BMI
+BMI <- 25 + 2 * G + rnorm(n, 0, 3)
+
+# 模拟血压（BP）
+BP <- 120 + 1.5 * BMI + rnorm(n, 0, 10)
+
+# 创建数据框
+data <- data.frame(SNP = G, BMI = BMI, BP = BP)
+
+# 准备暴露变量数据
+exposure_data <- data %>%
+  select(SNP, BMI) %>%
+  rename(beta.exposure = BMI) %>%
+  mutate(id.exposure = "BMI",
+         exposure = "BMI",
+         effect_allele.exposure = "A",
+         other_allele.exposure = "C",
+         eaf.exposure = 0.3,
+         se.exposure = 1,
+         pval.exposure = 0.01,
+         samplesize.exposure = n)
+
+# 准备结局变量数据
+outcome_data <- data %>%
+  select(SNP, BP) %>%
+  rename(beta.outcome = BP) %>%
+  mutate(id.outcome = "BP",
+         outcome = "BP",
+         effect_allele.outcome = "A",
+         other_allele.outcome = "C",
+         eaf.outcome = 0.3,
+         se.outcome = 1,
+         pval.outcome = 0.01,
+         samplesize.outcome = n)
+
+# 合并暴露变量和结局变量数据
+harmonised_data <- harmonise_data(exposure_data, outcome_data)
+
+# 进行MR分析
+mr_results <- mr(harmonised_data)
+
+# 查看结果
+print(mr_results)
+
+# 绘制图表
+mr_forest_plot(mr_results)
+mr_funnel_plot(mr_results)
+mr_scatter_plot(harmonised_data, mr_results)
+
+```
+
+
+```{r}
+#install.packages("devtools")
+#devtools::install_github("MRCIEU/TwoSampleMR")
+#install.packages("dplyr")
+
+library(TwoSampleMR)
+library(dplyr)
+
+# 生成模拟数据
+set.seed(42)
+
+# 样本量
+n <- 1000
+
+# 模拟基因变异（G）
+G <- rbinom(n, 2, 0.3)
+
+# 模拟BMI
+BMI <- 25 + 2 * G + rnorm(n, 0, 3)
+
+# 模拟血压（BP）
+BP <- 120 + 1.5 * BMI + rnorm(n, 0, 10)
+
+# 创建数据框
+data <- data.frame(SNP = G, BMI = BMI, BP = BP)
+
+# 准备暴露变量数据
+exposure_data <- data %>%
+  select(SNP, BMI) %>%
+  rename(beta.exposure = BMI) %>%
+  mutate(id.exposure = "BMI",
+         exposure = "BMI",
+         effect_allele.exposure = "A",
+         other_allele.exposure = "C",
+         eaf.exposure = 0.3,
+         se.exposure = 1,
+         pval.exposure = 0.01,
+         samplesize.exposure = n)
+
+# 准备结局变量数据
+outcome_data <- data %>%
+  select(SNP, BP) %>%
+  rename(beta.outcome = BP) %>%
+  mutate(id.outcome = "BP",
+         outcome = "BP",
+         effect_allele.outcome = "A",
+         other_allele.outcome = "C",
+         eaf.outcome = 0.3,
+         se.outcome = 1,
+         pval.outcome = 0.01,
+         samplesize.outcome = n)
+
+# 合并暴露变量和结局变量数据
+harmonised_data <- harmonise_data(exposure_data, outcome_data)
+
+# 进行MR分析
+mr_results <- mr(harmonised_data)
+
+# 查看结果
+print(mr_results)
+
+# 绘制图表
+mr_forest_plot(mr_results)
+mr_funnel_plot(mr_results)
+mr_scatter_plot(mr_results)
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+#install.packages("devtools")
+#devtools::install_github("MRCIEU/TwoSampleMR")
+#install.packages("dplyr")
+
+library(TwoSampleMR)
+library(dplyr)
+#我们将生成模拟数据用于两样本孟德尔随机化分析。这里模拟的数据包括一个与BMI相关的基因变异（G），BMI（暴露变量），和血压（BP，结局变量）。
+# 安装并加载必要的包
+
+# 生成模拟数据
+set.seed(42)
+
+# 样本量
+n <- 1000
+
+# 模拟基因变异（G）
+G <- rbinom(n, 2, 0.3)
+
+# 模拟BMI
+BMI <- 25 + 2 * G + rnorm(n, 0, 3)
+
+# 模拟血压（BP）
+BP <- 120 + 1.5 * BMI + rnorm(n, 0, 10)
+
+# 创建数据框
+data <- data.frame(G, BMI, BP)
+
+# 准备暴露变量数据
+exposure_data <- data %>%
+  select(G, BMI) %>%
+  rename(SNP = G, beta.exposure = BMI) %>%
+  mutate(id.exposure = "BMI",
+         effect_allele.exposure = "A",
+         other_allele.exposure = "C",
+         eaf.exposure = 0.3,
+         se.exposure = 1,
+         pval.exposure = 0.01,
+         samplesize.exposure = n)
+
+# 准备结局变量数据
+outcome_data <- data %>%
+  select(G, BP) %>%
+  rename(SNP = G, beta.outcome = BP) %>%
+  mutate(id.outcome = "BP",
+         effect_allele.outcome = "A",
+         other_allele.outcome = "C",
+         eaf.outcome = 0.3,
+         se.outcome = 1,
+         pval.outcome = 0.01,
+         samplesize.outcome = n)
+
+# 合并暴露变量和结局变量数据
+harmonised_data <- harmonise_data(exposure_data, outcome_data)
+
+# 进行MR分析
+mr_results <- mr(harmonised_data)
+
+# 查看结果
+print(mr_results)
+
+# 绘制图表
+mr_forest_plot(mr_results)
+mr_funnel_plot(mr_results)
+mr_scatter_plot(mr_results)
+
+
+```
+
+
+##2024.05-广义线性模型
+```{r}
+# 安装并加载必要的包
+if (!require('readxl')) install.packages('readxl')
+if (!require('stats')) install.packages('stats')
+if (!require('car')) install.packages('car')
+
+library(readxl)
+library(stats)
+library(car)
+
+# 读取 Excel 文件
+file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/各种聚类方法研究.xlsx"
+df <- read_excel(file_path, sheet = "Sheet1")
+
+# 检查数据结构
+str(df)
+
+# 将“年龄”作为因变量，其他特征作为自变量
+dependent_var <- df$年龄
+independent_vars <- df[, -which(names(df) == "年龄")]
+
+# 将数据转换为数据框
+independent_vars <- as.data.frame(independent_vars)
+
+# 构建初始线性回归模型
+initial_formula <- paste("年龄 ~", paste(names(independent_vars), collapse = " + "))
+initial_model <- lm(as.formula(initial_formula), data = df)
+
+# 使用逐步回归进行模型选择（后向消除）
+stepwise_model <- step(initial_model, direction = "backward")
+
+# 输出最终模型结果
+summary(stepwise_model)
+coef(summary(stepwise_model))
+
+
+# 安装并加载 openxlsx 包
+getwd()
+library(openxlsx)
+# 获取最终模型的系数
+final_coefficients <- as.data.frame(coef(summary(stepwise_model)))
+# 将系数结果写入 Excel 文件
+output_excel_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/"
+write.xlsx(final_coefficients, output_excel_path, rowNames = TRUE)
+
+# 提示已输出
+cat("已将逐步回归模型的系数结果输出到 Excel 文件：", output_excel_path, "\n")
+
+# 获取最终模型的系数
+final_coefficients <- coef(stepwise_model)
+
+# 输出最终模型的公式
+final_formula <- formula(stepwise_model)
+#cat("最终模型公式：\n", final_formula, "\n")
+
+# 获取多重共线性检测的 VIF 值
+vif_values <- vif(stepwise_model)
+cat("多重共线性检测 VIF：\n")
+print(vif_values)
+
+#计算一下
+# 计算最终模型预测值
+predicted_values <- predict(stepwise_model, newdata = df)
+# 计算预测值和实际年龄之间的相关系数
+#?cor
+correlation <- cor(predicted_values, dependent_var,method = "spearman")
+# 计算 Spearman 相关系数和 p 值
+correlation_test <- cor.test(predicted_values, dependent_var, method = "spearman")
+
+# 获取相关系数和 p 值
+correlation <- correlation_test$estimate
+p_value <- correlation_test$p.value
+
+# 输出相关系数和 p 值
+cat("相关系数 (Spearman): ", correlation, "\n")
+cat("p 值: ", p_value, "\n")
+
+cat("预测值和实际年龄的相关系数: ", correlation, "\n")
+# 绘制相关系数拟合直线散点图
+plot_data <- data.frame(Predicted_Age = predicted_values, Actual_Age = dependent_var)
+
+ggplot(plot_data, aes(x = Predicted_Age, y = Actual_Age)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x = "预测年龄", y = "实际年龄") +
+  annotate("text", x = min(plot_data$Predicted_Age), y = max(plot_data$Actual_Age), 
+           label = paste0("相关系数: ", round(correlation, 2)), hjust = 0, vjust = 1, color = "red")
+
+```
+
+#逐步多元回归--2024.05.19修改
+```{r}
+# 加载必要的库
+library(readxl)
+library(car)      # vif
+library(openxlsx) # 用于导出Excel文件
+library(ggplot2)  # 用于绘图
+library(Hmisc)    # 用于计算Spearman相关性
+
+# 读取 Excel 文件
+file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/各种聚类方法研究.xlsx"
+df <- read_excel(file_path, sheet = "Sheet1")
+
+# 检查数据结构
+str(df)
+
+# 将“年龄”作为因变量，其他特征作为自变量
+dependent_var <- df$年龄
+independent_vars <- df[, -which(names(df) == "年龄")]
+
+# 将数据转换为数据框
+independent_vars <- as.data.frame(independent_vars)
+
+# 构建初始线性回归模型
+initial_formula <- paste("年龄 ~", paste(names(independent_vars), collapse = " + "))
+initial_model <- lm(as.formula(initial_formula), data = df)
+
+# 使用逐步回归进行模型选择（后向消除）
+stepwise_model <- step(initial_model, direction = "backward")
+
+# 输出最终模型结果
+summary(stepwise_model)
+
+# 获取最终模型的系数
+final_coefficients <- coef(stepwise_model)
+
+# 输出最终模型的公式
+final_formula <- formula(stepwise_model)
+#cat("最终模型公式：\n", final_formula, "\n")
+
+# 获取多重共线性检测的 VIF 值
+vif_values <- vif(stepwise_model)
+cat("多重共线性检测 VIF：\n")
+print(vif_values)
+
+# 预测年龄值
+predicted_values <- predict(stepwise_model, newdata = df)
+
+# 将预测值添加到原始数据框中
+df$预测年龄 <- predicted_values
+
+# 计算Spearman相关性
+spearman_corr <- rcorr(df$年龄, df$预测年龄, type = "spearman")
+spearman_r <- spearman_corr$r[1, 2]
+spearman_p <- spearman_corr$P[1, 2]
+cat("Spearman 相关性：\n")
+cat("R值：", spearman_r, "\n")
+cat("p值：", spearman_p, "\n")
+
+# 导出数据到Excel
+output_file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/预测结果.xlsx"
+write.xlsx(df, file = output_file_path, sheetName = "预测结果", rowNames = FALSE)
+
+# 绘制散点图和回归线，并标注R值和p值
+ggplot(df, aes(x = 年龄, y = 预测年龄)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  annotate("text", x = Inf, y = Inf, label = paste("R值：", round(spearman_r, 4), "\np值：", format(spearman_p, scientific = FALSE)), hjust = 1.1, vjust = 1.1, size = 5, color = "black") +
+  labs(title = "原始年龄与预测年龄的Spearman相关性",
+       x = "原始年龄 (岁)",
+       y = "预测年龄 (岁)") +
+  theme_minimal(base_family = "Arial", base_size = 16) +
+  theme(axis.title = element_text(face = "bold"))
+
+# 保存图表为PDF
+pdf_file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/预测结果相关性图.pdf"
+ggsave(pdf_file_path)
+
+```
+
+
+
+##2024.05多元逐步回归--2024.05
+```{r}
+# 安装并加载必要的包
+if (!require('readxl')) install.packages('readxl')
+if (!require('stats')) install.packages('stats')
+if (!require('car')) install.packages('car')
+
+library(readxl)
+library(stats)
+library(car)
+
+# 读取 Excel 文件
+file_path <- "/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/各种聚类方法研究.xlsx"
+df <- read_excel(file_path, sheet = "Sheet1")
+
+# 检查数据结构
+str(df)
+
+# 将“年龄”作为因变量，其他特征作为自变量
+dependent_var <- df$年龄
+independent_vars <- df[, -which(names(df) == "年龄")]
+
+# 将数据转换为数据框
+independent_vars <- as.data.frame(independent_vars)
+
+# 构建初始线性回归模型
+initial_formula <- paste("年龄 ~", paste(names(independent_vars), collapse = " + "))
+initial_model <- lm(as.formula(initial_formula), data = df)
+
+# 使用逐步回归进行模型选择（后向消除）
+stepwise_model <- step(initial_model, direction = "backward")
+
+# 输出最终模型结果
+summary(stepwise_model)
+
+# 获取最终模型的系数
+final_coefficients <- coef(stepwise_model)
+
+# 输出最终模型的公式
+final_formula <- formula(stepwise_model)
+#cat("最终模型公式：\n", final_formula, "\n")
+
+# 获取多重共线性检测的 VIF 值
+vif_values <- vif(stepwise_model)
+cat("多重共线性检测 VIF：\n")
+print(vif_values)
+
+```
+
+df
+```{r}
+# 假设您的数据框是 df，要计算的两列是 column1 和 column2
+# 计算 Spearman 相关系数和 p 值
+result <- cor.test(df$真实年龄, df$第一主成分, method = "spearman")
+result2 <- cor.test(df$真实年龄, df$第一主成分, method = "pearson")
+# 打印结果
+print(result2)
+```
+
+
+####单个变量的图
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./剔除离群值.xlsx", sheet = 4)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+library(ggpubr) # 确保已经安装了 ggpubr 包
+
+# 假设 'base_var' 和 'target_var' 是变量名称的字符串形式
+base_var <- "年龄"  # 比如 'Age'
+target_var <- "眼角_Q3"  # 比如 'Collagen_Density'
+
+# 使用 ggscatter 从 ggpubr 包来绘图
+p <- ggscatter(df, x = base_var, y = target_var,
+                add = "reg.line", conf.int = TRUE,
+                add.params = list(color = "#C388FE", fill = "#D1B6E1", size = 1),  # 自定义回归线的颜色
+                cor.coef = TRUE, cor.method = "spearman") +
+     xlab(colnames(df_filtered)[1]) +  # x轴标签使用 base_var 的列名
+     ylab(colnames(df_filtered)[which(colnames(df_filtered) == target_var)]) +  # y轴标签使用 target_var 的列名
+     theme(text = element_text(family = "Songti"),  # 设置全局字体
+           axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+           axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+
+# 绘制图形
+print(p)
+
+ pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+
+
+
+
+```
+
+#发表文章常用字体，中文宋体加粗，英文Arial加粗，p值不要使用科学计数法，R值同理；不要遮挡住散点图，写在图片的左上方；
+
+
+####客观指标-2024.04
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./皮肤老化表型采集项目研究.原始数据(2).xlsx", sheet = 8)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+# 假设df是你的数据框
+colnames(df) <- make.names(colnames(df), unique=TRUE)
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+
+# 准备一个列表来存储每个散点图
+plot_list <- list()
+
+for (i in 2:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 仅选取当前列对中不含NA的行
+  df_filtered <- df %>% filter(!is.na(.data[[base_var]]) & !is.na(.data[[target_var]]))
+  
+  # 使用ggscatter来创建散点图，并添加回归线及置信区间
+  p <- ggscatter(df_filtered, x = base_var, y = target_var, 
+                 add = "reg.line", conf.int = TRUE, 
+                  add.params = list(color = "#77C034", fill = "#C5E99B", size = 1),  # 自定义回归线的颜色
+                 cor.coef = TRUE, cor.method = "spearman") +
+    xlab(colnames(df)[1]) +  # x轴标签直接使用第八列的列名
+    ylab(colnames(df)[i]) +  # y轴标签直接使用当前循环列的列名
+    theme(text = element_text(family = "Songti"),  # 设置全局字体
+          axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+          axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+  
+  # 将创建的散点图添加到列表中
+  plot_list[[target_var]] <- p
+}
+
+# 可以选择单独查看或保存每个图形
+# 这里是查看第一个图形的例子
+
+# 遍历plot_list，为每个散点图保存PDF文件
+for (i in seq_along(plot_list)) {
+  target_var <- names(plot_list)[i]
+  p <- plot_list[[i]]
+  
+  # 展示当前图形
+  print(p)
+  # 指定PDF文件名，基于目标变量名称
+  pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+}
+```
+
+
+```{r}
+# 如果你还没有安装writexl包，请取消注释以下行并运行
+# install.packages("writexl")
+# 初始化一个空的数据框来存储结果
+results_df <- data.frame(Feature = character(), SpearmanR = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+# 导入writexl包
+library(writexl)
+
+# 遍历plot_list，计算Spearman相关系数和P值，并收集数据
+for (target_var in names(plot_list)) {
+  # 提取x和y变量
+  x_var <- df[[base_var]]
+  y_var <- df[[target_var]]
+  
+  # 计算Spearman相关性
+  correlation_test <- cor.test(x_var, y_var, method = "spearman")
+  
+  # 将结果添加到数据框
+  results_df <- rbind(results_df, data.frame(Feature = target_var, SpearmanR = correlation_test$estimate, PValue = correlation_test$p.value))
+}
+
+# 将结果写入Excel文件
+write_xlsx(results_df, "客观_analysis_results.xlsx")
+
+# 打印操作完成的消息
+cat("Results have been saved to 'analysis_results2.xlsx'.\n")
+
+
+
+```
+
+####肤色指标-左右合并-2024.04
+
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./皮肤老化表型采集项目研究.原始数据(2).xlsx", sheet = 19)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+# 假设df是你的数据框
+colnames(df) <- make.names(colnames(df), unique=TRUE)
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+
+# 准备一个列表来存储每个散点图
+plot_list <- list()
+
+for (i in 2:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 仅选取当前列对中不含NA的行
+  df_filtered <- df %>% filter(!is.na(.data[[base_var]]) & !is.na(.data[[target_var]]))
+  
+  # 使用ggscatter来创建散点图，并添加回归线及置信区间
+  p <- ggscatter(df_filtered, x = base_var, y = target_var, 
+                 add = "reg.line", conf.int = TRUE, 
+                  add.params = list(color = "#0AA1FF", fill = "#a5dff9", size = 1),  # 自定义回归线的颜色
+                 cor.coef = TRUE, cor.method = "spearman") +
+    xlab(colnames(df)[1]) +  # x轴标签直接使用第八列的列名
+    ylab(colnames(df)[i]) +  # y轴标签直接使用当前循环列的列名
+    theme(text = element_text(family = "Songti"),  # 设置全局字体
+          axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+          axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+  
+  # 将创建的散点图添加到列表中
+  plot_list[[target_var]] <- p
+}
+
+# 可以选择单独查看或保存每个图形
+# 这里是查看第一个图形的例子
+
+# 遍历plot_list，为每个散点图保存PDF文件
+for (i in seq_along(plot_list)) {
+  target_var <- names(plot_list)[i]
+  p <- plot_list[[i]]
+  
+  # 展示当前图形
+  print(p)
+  # 指定PDF文件名，基于目标变量名称
+  pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+}
+```
+
+
+```{r}
+# 如果你还没有安装writexl包，请取消注释以下行并运行
+# install.packages("writexl")
+# 初始化一个空的数据框来存储结果
+results_df <- data.frame(Feature = character(), SpearmanR = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+# 导入writexl包
+library(writexl)
+
+# 遍历plot_list，计算Spearman相关系数和P值，并收集数据
+for (target_var in names(plot_list)) {
+  # 提取x和y变量
+  x_var <- df[[base_var]]
+  y_var <- df[[target_var]]
+  
+  # 计算Spearman相关性
+  correlation_test <- cor.test(x_var, y_var, method = "spearman")
+  
+  # 将结果添加到数据框
+  results_df <- rbind(results_df, data.frame(Feature = target_var, SpearmanR = correlation_test$estimate, PValue = correlation_test$p.value))
+}
+
+# 将结果写入Excel文件
+write_xlsx(results_df, "肤色_analysis_results.xlsx")
+
+# 打印操作完成的消息
+cat("Results have been saved to 'analysis_results2.xlsx'.\n")
+
+
+
+```
+
+
+
+```{r}
+
+```
+#老化参数的文章
+
+
+
+
+#临床指标-完整代码
+```{r}
+```
+
+
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./皮肤老化表型采集项目研究.原始数据(2).xlsx", sheet = 6)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[8]
+
+# 准备一个列表来存储每个散点图
+plot_list <- list()
+
+# 对第八列之后的每一列进行线性回归分析并绘图
+# 对第八列之后的每一列进行线性回归分析并绘图，这次加上了轴标签的样式自定义
+for (i in 9:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 使用ggscatter来创建散点图，并添加回归线及置信区间
+  p <- ggscatter(df, x = base_var, y = target_var, 
+                 add = "reg.line", conf.int = TRUE, 
+                 add.params = list(color = "#77C034", fill = "#C5E99B", size = 1),  # 自定义回归线的颜色
+                 cor.coef = TRUE, cor.method = "spearman") +
+    xlab(colnames(df)[8]) +  # x轴标签直接使用第八列的列名
+    ylab(colnames(df)[i]) +  # y轴标签直接使用当前循环列的列名
+  theme(text = element_text(family = chinese_font_family),  # 设置全局字体
+        axis.title.x = element_text(face = "bold", size = 25, family = chinese_font_family),  # 设置x轴标题的字体
+        axis.title.y = element_text(face = "bold", size = 25, family = chinese_font_family))  # 设置y轴标题的字体
+  # 将创建的散点图添加到列表中
+  plot_list[[target_var]] <- p
+}
+
+# 可以选择单独查看或保存每个图形
+# 这里是查看第一个图形的例子
+
+# 遍历plot_list，为每个散点图保存PDF文件
+for (i in seq_along(plot_list)) {
+  target_var <- names(plot_list)[i]
+  p <- plot_list[[i]]
+  
+  # 展示当前图形
+  print(p)
+  # 指定PDF文件名，基于目标变量名称
+  pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+}
+```
+
+#输出上面图片相应的数据表格；；；
+```{r}
+# 如果你还没有安装writexl包，请取消注释以下行并运行
+# install.packages("writexl")
+# 初始化一个空的数据框来存储结果
+results_df <- data.frame(Feature = character(), SpearmanR = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+# 导入writexl包
+library(writexl)
+
+# 遍历plot_list，计算Spearman相关系数和P值，并收集数据
+for (target_var in names(plot_list)) {
+  # 提取x和y变量
+  x_var <- df[[base_var]]
+  y_var <- df[[target_var]]
+  
+  # 计算Spearman相关性
+  correlation_test <- cor.test(x_var, y_var, method = "spearman")
+  
+  # 将结果添加到数据框
+  results_df <- rbind(results_df, data.frame(Feature = target_var, SpearmanR = correlation_test$estimate, PValue = correlation_test$p.value))
+}
+
+# 将结果写入Excel文件
+write_xlsx(results_df, "analysis_results.xlsx")
+
+# 打印操作完成的消息
+cat("Results have been saved to 'analysis_results.xlsx'.\n")
+
+
+
+
+
+```
+
+
+#肤色指标
+```{r}
+
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./皮肤老化表型采集项目研究.原始数据(2).xlsx", sheet = 16)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[8]
+# 假设df是你的数据框
+colnames(df) <- make.names(colnames(df), unique=TRUE)
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[8]
+
+# 准备一个列表来存储每个散点图
+plot_list <- list()
+# 定义一个函数来识别和处理离群值
+handle_outliers <- function(x) {
+  qnt <- quantile(x, probs=c(.25, .75), na.rm = TRUE)
+  caps <- quantile(x, probs=c(.1, .9), na.rm = TRUE)
+  H <- 1.5 * IQR(x, na.rm = TRUE)
+  x[x < (qnt[1] - H)] <- caps[1]
+  x[x > (qnt[2] + H)] <- caps[2]
+  return(x)
+}
+
+for (i in 9:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 处理base_var和target_var列的离群值
+  df[[base_var]] <- handle_outliers(df[[base_var]])
+  df[[target_var]] <- handle_outliers(df[[target_var]])
+  
+  # 接下来是你原有的代码，进行数据筛选和绘图...
+}
+
+for (i in 9:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 仅选取当前列对中不含NA的行
+  df_filtered <- df %>% filter(!is.na(.data[[base_var]]) & !is.na(.data[[target_var]]))
+  
+  # 使用ggscatter来创建散点图，并添加回归线及置信区间
+  p <- ggscatter(df_filtered, x = base_var, y = target_var, 
+                 add = "reg.line", conf.int = TRUE, 
+                 add.params = list(color = "#0AA1FF", fill = "#a5dff9", size = 1),  # 自定义回归线的颜色
+                 cor.coef = TRUE, cor.method = "spearman") +
+    xlab(colnames(df)[8]) +  # x轴标签直接使用第八列的列名
+    ylab(colnames(df)[i]) +  # y轴标签直接使用当前循环列的列名
+    theme(text = element_text(family = "Songti"),  # 设置全局字体
+          axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+          axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+  
+  # 将创建的散点图添加到列表中
+  plot_list[[target_var]] <- p
+}
+
+# 可以选择单独查看或保存每个图形
+
+# 这里是查看第一个图形的例子
+
+# 遍历plot_list，为每个散点图保存PDF文件
+for (i in seq_along(plot_list)) {
+  target_var <- names(plot_list)[i]
+  p <- plot_list[[i]]
+  
+  # 展示当前图形
+  print(p)
+  # 指定PDF文件名，基于目标变量名称
+  pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+}
+
+# 如果你还没有安装writexl包，请取消注释以下行并运行
+# install.packages("writexl")
+# 初始化一个空的数据框来存储结果
+results_df <- data.frame(Feature = character(), SpearmanR = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+# 导入writexl包
+library(writexl)
+
+# 遍历plot_list，计算Spearman相关系数和P值，并收集数据
+for (target_var in names(plot_list)) {
+  # 提取x和y变量
+  x_var <- df[[base_var]]
+  y_var <- df[[target_var]]
+  
+  # 计算Spearman相关性
+  correlation_test <- cor.test(x_var, y_var, method = "spearman")
+  
+  # 将结果添加到数据框
+  results_df <- rbind(results_df, data.frame(Feature = target_var, SpearmanR = correlation_test$estimate, PValue = correlation_test$p.value))
+}
+
+# 将结果写入Excel文件
+write_xlsx(results_df, "analysis_results3.xlsx")
+
+# 打印操作完成的消息
+cat("Results have been saved to 'analysis_results3.xlsx'.\n")
+
+
+```
+
+
+
+
+
+####弹性指标-2024.04
+```{r}
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/")
+# 加载必要的R包
+#install.packages("showtext")
+library(showtext)
+font_add("Songti", "/System/Library/Fonts/Supplemental/Songti.ttc")
+showtext_auto()
+
+
+library(dplyr)  # 数据处理包
+library(ggplot2)  # 绘图包
+library(readxl)  # 读取Excel文件的包
+library(ggpubr)  # ggplot2扩展包，用于绘制回归线和相关性统计
+# 选择一个在你的Mac系统上可用的中文字体，比如"STHeiti"或"PingFang SC"
+chinese_font_family <- "Songti"
+# 读取Excel文件的第六张sheet
+df <- read_excel("./皮肤老化表型采集项目研究.原始数据(2).xlsx", sheet = 13)  # 替换"your_file.xlsx"为你的文件名
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+# 假设df是你的数据框
+colnames(df) <- make.names(colnames(df), unique=TRUE)
+
+# 确定分析的基准列（第八列），并获取其名称
+base_var <- colnames(df)[1]
+
+# 准备一个列表来存储每个散点图
+plot_list <- list()
+
+for (i in 2:length(colnames(df))) {
+  target_var <- colnames(df)[i]
+  
+  # 仅选取当前列对中不含NA的行
+  df_filtered <- df %>% filter(!is.na(.data[[base_var]]) & !is.na(.data[[target_var]]))
+  
+  # 使用ggscatter来创建散点图，并添加回归线及置信区间
+  p <- ggscatter(df_filtered, x = base_var, y = target_var, 
+                 add = "reg.line", conf.int = TRUE, 
+                 add.params = list(color = "#C388FE", fill = "#D1B6E1", size = 1),  # 自定义回归线的颜色
+                 cor.coef = TRUE, cor.method = "spearman") +
+    xlab(colnames(df)[1]) +  # x轴标签直接使用第八列的列名
+    ylab(colnames(df)[i]) +  # y轴标签直接使用当前循环列的列名
+    theme(text = element_text(family = "Songti"),  # 设置全局字体
+          axis.title.x = element_text(face = "bold", size = 25, family = "Songti"),  # 设置x轴标题的字体
+          axis.title.y = element_text(face = "bold", size = 25, family = "Songti"))  # 设置y轴标题的字体
+  
+  # 将创建的散点图添加到列表中
+  plot_list[[target_var]] <- p
+}
+
+# 可以选择单独查看或保存每个图形
+# 这里是查看第一个图形的例子
+
+# 遍历plot_list，为每个散点图保存PDF文件
+for (i in seq_along(plot_list)) {
+  target_var <- names(plot_list)[i]
+  p <- plot_list[[i]]
+  
+  # 展示当前图形
+  print(p)
+  # 指定PDF文件名，基于目标变量名称
+  pdf_filename <- paste("scatter_plot_", target_var, ".pdf", sep = "")
+  # 保存PDF，调整画布大小以适应图形
+  ggsave(filename = pdf_filename, plot = p, device = "pdf", height = 4, width = 4, dpi = 1200)
+}
+```
+
+
+```{r}
+# 如果你还没有安装writexl包，请取消注释以下行并运行
+# install.packages("writexl")
+# 初始化一个空的数据框来存储结果
+results_df <- data.frame(Feature = character(), SpearmanR = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+# 导入writexl包
+library(writexl)
+
+# 遍历plot_list，计算Spearman相关系数和P值，并收集数据
+for (target_var in names(plot_list)) {
+  # 提取x和y变量
+  x_var <- df[[base_var]]
+  y_var <- df[[target_var]]
+  
+  # 计算Spearman相关性
+  correlation_test <- cor.test(x_var, y_var, method = "spearman")
+  
+  # 将结果添加到数据框
+  results_df <- rbind(results_df, data.frame(Feature = target_var, SpearmanR = correlation_test$estimate, PValue = correlation_test$p.value))
+}
+
+# 将结果写入Excel文件
+write_xlsx(results_df, "眼角_analysis_results.xlsx")
+
+# 打印操作完成的消息
+cat("Results have been saved to 'analysis_results2.xlsx'.\n")
+
+
+
+```
+
+
+
+
+
+```{r}
+# 加载必要的R包
+ 2library(dplyr)  # 数据处理包
+ 3library(ggplot2)  # 绘图包
+ 4library(cowplot)  # 组合绘图包
+ 5library(ggpubr)  # ggplot2扩展包
+ 6library(gridExtra)  # 网格绘图包
+ 7
+ 8# 设置工作目录
+ 9setwd("F:/公众号/Med2You/R语言进阶绘图26_Nature级最美Figure之线性回归相关性分析图")
+10
+11# 读取包含lymphocyte分数的数据文件
+12data <- read.table("AR26_LM_Ex1.txt", header = TRUE)
+13
+14# 添加一列T和NK分数的总和
+15data$T_NK <- data$T + data$NK
+16
+17# 将分数转换为百分比
+18data$T_NK_per <- data$T_NK * 100
+19data$T_per <- data$T * 100
+20data$NK_per <- data$NK * 100
+21
+22# 创建散点图
+23t_nk <- ggscatter(data, x = "Cytolytic_score", y = "T_NK_per",
+24            size = 1.5,
+25            add = "reg.line",  # 添加回归线
+26            add.params = list(color = "#77C034", fill = "#C5E99B", size = 1),  # 自定义回归线的颜色
+27            conf.int = TRUE  # 添加置信区间
+28  ) +
+29  stat_cor(method = "spearman", label.x = 2.5, label.y = 25, label.sep = "\n") +
+30  xlab("Cytolytic score (RNA-seq)") +
+31  ylab("% T/NK cells (flow cytometry)")
+32
+33# 创建T细胞和NK细胞的散点图
+34t <- ggscatter(data, x = "Cytolytic_score", y = "T_per",
+35          size = 1.5,
+36          add = "reg.line",  # 添加回归线
+37          add.params = list(color = "#C388FE", fill = "#D1B6E1", size = 1),  # 自定义回归线的颜色
+38          conf.int = TRUE  # 添加置信区间
+39) +
+40  stat_cor(method = "spearman", label.x = 1.5, label.y = 25, label.sep = "\n") +
+41  xlab("Cytolytic score\n(RNA-seq)") +
+42  ylab("% T cells in AML BM\n(flow cytometry)") +
+43  ggtitle("T cells") +
+44  theme(plot.title = element_text(hjust = 0.5))
+45
+46nk <- ggscatter(data, x = "Cytolytic_score", y = "NK_per",
+47               size = 1.5,
+48               add = "reg.line",  # 添加回归线
+49               add.params = list(color = "#0AA1FF", fill = "#a5dff9", size = 1),  # 自定义回归线的颜色
+50               conf.int = TRUE  # 添加置信区间
+51) +
+52  stat_cor(method = "spearman", label.x = 1.5, label.y = 7, label.sep = "\n") +
+53  xlab("Cytolytic score\n(RNA-seq)") +
+54  ylab("% NK cells in AML BM\n(flow cytometry)") +
+55  ggtitle("NK cells") +
+56  theme(plot.title = element_text(hjust = 0.5))
+57
+58# 保存为PDF文件
+59pdf("R语言进阶绘图26_Nature级最美Figure之线性回归相关性分析图_ex1.pdf", height = 2.5, width = 8)
+60grid.arrange(t_nk, t, nk, ncol = 3)  # 组合图形为三列
+61dev.off()  # 关闭PDF输出
+
+
+
+
+
+```
+
+
+
+}
+
+#差异箱型图带显著性星号
+```{r}
+#------
+title: "boxplot"
+author: "MZBJ"
+date: "2020/4/16"
+#-----
+ # 导入所需的包
+library(ggplot2)
+library(ggsignif)
+library(ggpubr)
+library(RColorBrewer)
+setwd("F:/HJH/mzbj/cell")
+# 导入数据
+plot_data <- read.csv(file = "ABCD.csv")
+#-----------------------
+p<- ggplot(data=plot_data)+ 
+  geom_boxplot(mapping=aes(x=group,y=Retive_Abundance,colour = group ), #箱线图
+               alpha = 0.5,
+               size=1.5,
+               width = 0.6)+ 
+  geom_jitter(mapping=aes(x=group,y=Retive_Abundance,colour = group), #散点
+              alpha = 0.3,size=3)+
+  scale_color_manual(limits=c("A","B","C","D"), 
+                     values=c("#85B22E","#5F80B4","#E29827","#922927"))+ #颜色
+  geom_signif(mapping=aes(x=group,y=Retive_Abundance), # 不同组别的显著性
+              comparisons = list(c("A", "B"), # 哪些组进行比较
+                                 c("A", "C"),
+                                 c("A", "D"),
+                                 c("B", "C"),
+                                 c("B", "D"),
+                                 c("C", "D")),
+              map_signif_level=T, # T显示显著性，F显示p value
+              tip_length=c(0,0,0,0,0,0,0,0,0,0,0,0), # 修改显著性线两端的长短
+              y_position = c(40,41,42,39,38,40), # 设置显著性线的位置高度
+              size=1, # 修改线的粗细
+              textsize = 4, # 修改显著性标记的大小
+              test = "t.test")+ # 检验的类型
+  theme_classic(  # 主题设置，这个是无线条主题
+    base_line_size = 1 # 坐标轴的粗细
+  )+
+  labs(title="White blood cell(WBC)",x="",y="Retive_Abundance")+ # 添加标题，x轴，y轴内容
+  theme(plot.title = element_text(size = 15,
+                                  colour = "black",
+                                  hjust = 0.5),
+        axis.title.y = element_text(size = 15, 
+                                    # family = "myFont", 
+                                    color = "black",
+                                    face = "bold", 
+                                    vjust = 1.9, 
+                                    hjust = 0.5, 
+                                    angle = 90),
+        legend.title = element_text(color="black", # 修改图例的标题
+                                    size=15, 
+                                    face="bold"),
+        legend.text = element_text(color="black", # 设置图例标签文字
+                                   size = 10, 
+                                   face = "bold"),
+        axis.text.x = element_text(size = 13,  # 修改X轴上字体大小，
+                                   color = "black", # 颜色
+                                   face = "bold", #  face取值：plain普通，bold加粗，italic斜体，bold.italic斜体加粗
+                                   vjust = 0.5, # 位置
+                                   hjust = 0.5, 
+                                   angle = 0), #角度
+        axis.text.y = element_text(size = 13,  
+                                   color = "black",
+                                   face = "bold", 
+                                   vjust = 0.5, 
+                                   hjust = 0.5, 
+                                   angle = 0) 
+  )
+p
+ 
+```
+
+
+#继续进行初老与代谢组的关联
+```{r}
+# 安装（如果尚未安装）并加载必要的包
+if (!requireNamespace("readxl", quietly = TRUE)) install.packages("readxl")
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+if (!requireNamespace("writexl", quietly = TRUE)) install.packages("writexl")
+
+library(readxl)
+library(dplyr)
+library(writexl)
+
+# 读取数据
+data <- read_excel("./初老与代谢组.xlsx")
+
+# 初始化存储结果的向量
+features <- colnames(data)[-1] # 排除第一列（年龄）
+correlations <- numeric(length(features))
+p_values <- numeric(length(features))
+
+# 计算Spearman相关系数和p值
+for (i in seq_along(features)) {
+  test_result <- cor.test(data[[1]], data[[i + 1]], method = "spearman")
+  correlations[i] <- test_result$estimate
+  p_values[i] <- test_result$p.value
+}
+
+# 应用FDR矫正
+p_adj <- p.adjust(p_values, method = "BH")
+
+# 创建结果DataFrame
+results <- data.frame(
+  Feature = features,
+  Spearman_Correlation = correlations,
+  P_Value = p_values,
+  Adjusted_P_Value = p_adj
+)
+
+# 导出结果到Excel文件
+write_xlsx(results, "./R-语言-spearman_correlation_fdr_adjusted.xlsx")
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+#单因素卡方检验
+```{r}
+# 创建数据矩阵
+data_matrix <- matrix(c(10, 8, 225, 73), 
+                      nrow = 2, 
+                      byrow = TRUE)
+
+# 为矩阵添加行名和列名
+rownames(data_matrix) <- c('用药', '不用药')
+colnames(data_matrix) <- c('PAS', '非PAS')
+
+# 进行卡方检验
+chi_square_test <- chisq.test(data_matrix)
+
+# 打印检验结果
+print(chi_square_test)
+
+
+
+
+```
+```{r}
+#必须建立2✖️2 作为卡方检验
+# 用药组和不用药组的发病人数和样本总数
+cases_medicated <- 19 * 0.57894736  # 用药组发病人数
+n_medicated <- 19  # 用药组样本总数
+
+cases_not_medicated <- 320 * 0.753125  # 不用药组发病人数
+n_not_medicated <- 320  # 不用药组样本总数
+
+# 未发病人数
+non_cases_medicated <- n_medicated - cases_medicated
+non_cases_not_medicated <- n_not_medicated - cases_not_medicated
+
+# 创建一个2x2矩阵
+data_matrix <- matrix(c(cases_medicated, non_cases_medicated,
+                        cases_not_medicated, non_cases_not_medicated),
+                      nrow = 2,
+                      byrow = TRUE)
+
+# 为矩阵添加行名和列名
+rownames(data_matrix) <- c('用药', '不用药')
+colnames(data_matrix) <- c('发病', '未发病')
+
+# 进行费舍尔精确检验
+fisher_test <- fisher.test(data_matrix)
+
+# 打印检验结果
+print(fisher_test)
+
+```
+
+
+#GEO芯片数据分析{
+
+
+
+
+geodata_path = out_path_total
+if (downdata_idconvert_step == T) {
+  source("./R/get_geo_data_online.R")
+}
+exp_data[1:5,1:4]
+group_data[1:5,1,drop = F]解释这段代码，看起来满足条件会调用脚本，但是另一个脚本需要导入数据吗？我还不太会调用脚本的方式，请你举例教教我，调用的脚本相当于在里面直接写代码吗？那那些变量名称需要一致，就不利于重复使用，比如换一套数据，我还用这个脚本，但是数据名称，行名列名已经改变
+
+```{r}
+#-
+# 加载包
+###------
+{install.packages("r.proxy")
+library(r.proxy)
+?r.proxy::proxy()
+r.proxy::proxy("http://127.0.0.1:8001")
+
+install.packages("stringr")
+install.packages("tidyverse")
+install.packages("pheatmap")
+
+# 检查 ggrepe1 的正确名称，这里假设是 ggrepel
+install.packages("ggrepel")
+
+
+
+
+
+library(GEOquery)
+library (stringr)
+library(limma)
+library(tidyverse)
+library(limma)
+library(ggrepel)
+library(pheatmap)
+library(clusterProfiler)}
+#一一-
+＃#＃设罝参数
+#＃-------
+#整体的输出路径
+getwd()
+out_path_total = "./geo_analysis_one_step_result/"
+geodata_path = out_path_total
+deg_result_path = paste0 (out_path_total,"/01_差异分析结果/")
+enrich_result_path = paste0 (out_path_total,"/02_富集分析结果/")
+
+downdata_idconvert_step =T
+pca_step=T
+limma_step =T
+volcano_step =T
+heatmap_step = T
+Go_step =T
+kegg_step =T
+#reactome_step=T
+# step1.1 geo数据 下载id转换返回 exp_data group_data
+gse_id = "GSE124272"
+title_matched_pattern = "IDD|Healthy"
+out_path = geodata_path
+
+# step1.2 PCA分析
+#无需设置参数
+
+# step2.1 1imma 差异分析
+ref_group = "Healthy'"
+case_group="IDD"
+x = "logFC"
+y = "P.Value"
+#y="adj.P.Val"
+p_cut = 0.05
+abs_logFC_cut = 0.5
+outpath = deg_result_path
+
+
+# step2.2火山图
+x = "logFC"
+y = "p.Value"
+#y="adj.P.val"
+abs_1ogFC_cut = 0.5
+p_cut=0.05
+change_colname = "Change"
+color_colname = "Change"
+
+mark_genes <- NULL # NULL 或者输入要标记的基因组成的向量
+sort_by = "P.Value" # 按照什么排序筛选要标记的topgene
+split =T  #上下调是否分开排序
+mark_top = 10 # top几
+
+# step2.3热图
+all_deg = T # 用全部差异基因来绘制热图
+sort_by = "P.Value" # 按照什么排序節选要标记的topgene
+split = T #上下调是香分开排序
+top = 20 # top几
+outpath = deg_result_path
+
+#step3.1 GO富集分析
+keyType ="SYMBOL"
+OrgDb = "org.Hs.eg .db"
+showCategory = 10
+use_exist_RData = F #不是第一次运行可以设置为丁 将使用之前的分析结果进行画图
+
+# step3.2 KEGG盒集分析
+keyType ="SYMBOL"
+organism = "hsa"
+showCategory = 15
+use_exist_RData = F #不是第一次运行可以设置为T 将使用之前的分析结果进行画图
+outpath = enrich_result_path
+
+
+# 执行分析
+
+geodata_path = out_path_total
+if (downdata_idconvert_step == T) {
+  source("./R/get_geo_data_online.R")
+}
+exp_data[1:5,1:4]
+group_data[1:5,1,drop = F]
+           
+outpath = out_path_total
+if (pca_step ==T) {
+source(" ./R/run_pca.R")
+}
+
+outpath = deg_result_path
+if (limma_step == T) {
+  sourceC"./R/run_limma.R")
+}
+
+diff_gene
+
+deg_res = limma_deg
+if (volcano_step == T) {
+  source("./R/draw_volcano_plot.R")
+}
+
+data = exp_data #基因表达矩阵
+group_data = group_data
+if (heatmap_step == T) {
+  source("./R/draw_heatmap.R")
+}
+
+outpath = enrich_result_path
+if (GO_step ==T) {
+  source("./R/run_go.R")
+if (kegg_step == T) {
+  sourceC"./R/run_kegg.R")
+}
+
+
+
+
+
+
+
+```
+
+
+
+
+}
+
+
+
+
+#R语言实现多项式回归{
+```{r}
+
+
+```
+
+
+#基于初老的九个指标
+```{python}
+
+
+
+
+
+
+```
+}
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+getwd()
+setwd("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年AAD海报")
+#代谢全流程
+https://github.com/HuaZou/DraftNotes/tree/main/InputData/Zeybel-2022
+https://zouhua.top/DraftNotes/FunctionalAnalysis.html
+一个代谢组分析师兄推荐的网站：https://zouhua.top/DraftNotes/FunctionalAnalysis.html
+Metabo Analyst 5.0：https://dev.metaboanalyst.ca/MetaboAnalyst/ModuleView.xhtml
+
+
+#代谢物上下调分析（均值，非参数检验）
+```{r}
+
+```
+
+#微生物分布
+可以hiplot,也可以用复杂R code来解决，仙桃学术也画的好看；chiplot;迈维代谢；
+输入文件地址：
+```{r初始}
+# 安装必要的包
+# install.packages("ggplot2")
+# install.packages("readxl")
+
+# 加载包
+library(ggplot2)
+library(readxl)
+
+# 读取Excel文件，这里假设Excel文件与R脚本在同一目录下
+microbiome_data <- read_excel("microbiome_data.xlsx")
+
+# 使用ggplot2创建堆叠条形图
+ggplot(microbiome_data, aes(x = Group, y = Relative_Abundance, fill = Species)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(x = "Group", y = "Relative Abundance", fill = "Species") +
+  coord_flip() # 使用这个来翻转坐标，类似于你的图片
+
+# 如果需要，保存图形
+ggsave("stacked_bar_chart.png")
+
+```
+```{r}
+# 安装必要的包
+# install.packages("ggplot2")
+# install.packages("RColorBrewer")
+# install.packages("readxl")
+
+# 加载包
+library(ggplot2)
+library(RColorBrewer)
+library(readxl)
+
+# 读取Excel文件
+microbiome_data <- read_excel("microbiome_data.xlsx")
+
+# 创建一个配色方案
+colors <- brewer.pal(n = 8, name = "Dark2")
+
+# 使用ggplot2创建堆叠条形图
+ggplot(microbiome_data, aes(x = Group, y = Relative_Abundance, fill = Species)) +
+  geom_bar(stat = "identity", color = "black", size = 0.25) +
+  scale_fill_manual(values = colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "right") +
+  labs(x = "Group", y = "Relative Abundance", fill = "Species") +
+  coord_flip() # 翻转坐标以便类似于你的图片
+
+# 如果需要，保存图形
+ggsave("stacked_bar_chart_academic.png")
+
+```
+目前使用Chiplot完成-分类的颜色不够多
+输入数据：
+#微生物物种堆叠图
+输入： /Users/liuyizhou/Desktop/2024年/SCI论文-已 发表/2024年AAD海报/TOP10-18-30.xlsx
+代码：chiplot
+输出：
+知道丰度后，用chiplot完成，菌种要用斜体（注意学术规范），横纵坐标字体放大
+```{r}
+#rm(list=ls())
+library(ggsci)
+library(ggplot2)
+dat <- read.csv("./微生物数据(18-30;31-60).csv")
+head(dat)
+ggplot(dat, aes(sample, value, fill = OTU)) +
+  geom_bar(stat="identity", position = 'fill')+
+  xlab("") +
+  ylab("") +
+  theme_classic(base_size = 7) +
+  scale_y_continuous(expand = c(0,0)) +
+  ggtitle('OTU') +
+  guides(fill=guide_legend(title=NULL)) +
+  theme(axis.text.x=element_text(angle=45,vjust=1, hjust=1),
+        legend.key.size = unit(10, "pt")) +
+  ggsci::scale_fill_npg()
+```
+```{r}
+library(ggsci)
+library(ggplot2)
+library(RColorBrewer)
+
+# 读取数据
+dat <- read.csv("./微生物数据(18-30;31-60).csv")
+
+# 预排序数据，以确保丰度最高的菌在下面
+dat$OTU <- factor(dat$OTU, levels = dat$OTU[order(dat$value, decreasing = TRUE)])
+
+# 绘制堆叠条形图
+ggplot(dat, aes(x = sample, y = value, fill = OTU)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_brewer(palette = "Set1") + # 使用Set1调色板
+  xlab("") +
+  ylab("") +
+  theme_classic(base_size = 7) +
+  scale_y_continuous(expand = c(0, 0)) +
+  ggtitle('OTU') +
+  guides(fill = guide_legend(title = NULL)) +
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, hjust = 1),
+        legend.key.size = unit(10, "pt")) +
+  ggsci::scale_fill_npg()
+
+```
+
+
+#构建物种堆叠函数
+```{r}
+pic <- function(name){
+  ggplot(dat, aes(sample, value, fill = dat[,name])) +
+    geom_bar(stat="identity", position = 'fill')+
+    xlab("") +
+    ylab("") +
+    theme_classic(base_size = 7) +
+    scale_y_continuous(expand = c(0,0)) +
+    ggtitle(name) +
+    guides(fill=guide_legend(title=NULL)) +
+    theme(axis.text.x=element_text(angle=45,vjust=1, hjust=1),
+          legend.key.size = unit(10, "pt")) +
+    ggsci::scale_fill_npg()
+}
+```
+用的方法是：仙桃学术+R语言
+```{r}
+knitr::include_graphics("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年AAD海报/微生物丰度图片 .png")
+```
+#微生物热图
+基于R包+仙桃，compleheatmap；
+输入数据：
+```{r}
+
+```
+
+#饼图-比例
+```{r}
+# 加载必要的库
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# 读取数据
+data <- read_csv("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年AAD海报/lipidomics-代谢组求和.csv")
+
+# 对每个类别求和
+summarized_data <- data %>%
+  group_by(Class) %>%
+  summarize(Sum = sum(SUM))
+
+# 计算总和
+total_sum <- sum(summarized_data$Sum)
+
+# 计算百分比
+summarized_data <- summarized_data %>%
+  mutate(Percentage = Sum / total_sum * 100)
+
+# 绘制饼图
+pie_chart <- ggplot(summarized_data, aes(x="", y=Percentage, fill=Class)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  theme_void() +
+  scale_fill_brewer(palette="Pastel1") +
+  labs(fill="Class", title="Class Percentage Distribution") +
+  theme(legend.position="bottom") +
+  guides(fill=guide_legend(reverse=TRUE))
+
+# 显示饼图
+print(pie_chart)
+
+# 将结果保存为Excel文件
+write.csv(summarized_data, "summarized_data.csv", row.names = FALSE)
+
+# 保存饼图为图片
+ggsave("pie_chart.png", plot = pie_chart, width=10, height=8)
+
+```
+分类汇总
+```{r}
+# Load necessary libraries
+#install.packages("writexl")
+library(dplyr)
+library(writexl)
+
+# Read the data
+#data <- read.csv("path_to_your_data_file.csv")
+# Load the readxl package
+library(readxl)
+# Specify the path to your Excel file
+# Read the 6th sheet from the Excel file
+data <- read_excel("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年AAD海报/lipidomics-代谢组求和.xlsx", sheet = 7)
+
+# Group by the metabolite and summarize
+summarized_data <- data %>%
+  group_by(lipids) %>%
+  summarise(across(everything(), sum, na.rm = TRUE))
+
+# Write the summarized data to an Excel file
+write_xlsx(summarized_data, "summarized_metabolites.xlsx")
+
+```
+#分组条形图看看高低
+```{r}
+# Install and load necessary packages
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("tidyr")
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+
+# Read the data
+# Replace 'path_to_your_data_file.csv' with the actual path to your file
+data <- read_xlsx("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年AAD海报/lipidomics-代谢组分组求和.xlsx",sheet=9)
+
+# Transform data to long format
+long_data <- data %>%
+  pivot_longer(cols = -Age_group, names_to = "Metabolite", values_to = "Value")
+
+# Create the grouped bar chart
+ggplot(long_data, aes(x = Age_group, y = Value, fill = Metabolite)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  theme_minimal() +
+  labs(title = "Metabolite Levels by Age Group",
+       x = "Age Group",
+       y = "Level",
+       fill = "Metabolite") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Adjust text angle for x-axis labels if needed
+
+```
+
+
+#流行病学入门
+```{r}
+# 安装包
+#install.packages("tableone")  
+#加载R包
+library(tableone)
+#清理运行环境
+rm(list = ls()) 
+
+#设置工作目录的路径
+#在R语言中，路径需要用双反斜杠“\”来表示，因为反斜杠在R语言中是转义字符
+#setwd("D:\\Research\\R\\meisi")
+#读入数据
+aa<- read.csv('TNBC.csv')
+
+#查看数据前6行
+head(aa)
+#查看数据性质
+str(aa)
+#批量转因子
+for (i in names(aa)[c(1,2,3,4,5,6,7,8,9,11)]){aa[,i] <- as.factor(aa[,i])}
+#基线表
+{
+#连续变量正态性检验
+shapiro.test(aa$time)#p＞0.05才符合正态分布
+#基线中出现的变量
+myVars <- c("Age","Race","Grade", "T", "N",  "Laterality", 
+            "Marriage", "Chemotherapy", 
+            "Radiotherapy","time","status")#11个变量
+#基线中出现的分类变量
+catVars <- c("Age","Race","Grade", "T", "N",  "Laterality", 
+            "Marriage", "Chemotherapy", 
+            "Radiotherapy","status")#10个变量
+## 指定哪些变量是非正态分布变量
+nonvar <- c("time")  
+#构建Table 函数
+table<- CreateTableOne(vars = myVars,       
+                       factorVars = catVars, 
+                       data = aa,  #源数据
+                       addOverall = TRUE)  #增加overall列
+
+#输出结果
+table1 <- print(table,  
+                showAllLevels=TRUE, #显示所有变量
+                nonnormal = nonvar) 
+tablel
+#保存至Excel
+write.csv(table1, file = "table1.csv")
+}
+
+#批量单因素分析
+{
+#载入包
+#install.packages("survival")  
+#install.packages("plyr")
+library(survival)
+library(plyr)
+#status赋值，alive=0，dead=1
+aa$status <- ifelse(aa$status == "alive", 0, 1)  
+head(aa)
+str(aa)
+aa$status<-factor(aa$status)
+#构建模型的y
+y<- Surv(time = aa$time,event = aa$status==1)
+
+#批量单因素回归模型建立：Uni_cox_model
+Uni_cox_model<-
+  function(x){
+    FML <- as.formula(paste0 ("y~",x))
+    cox<- coxph(FML,data=aa)
+    cox1<-summary(cox)
+    HR <- round(cox1$coefficients[,2],2)#提取HR值，保留2位小数
+    PValue <- round(cox1$coefficients[,5],3)#提取p值，保留3位小数
+    CI5 <-round(cox1$conf.int[,3],2)#提取CI，保留2位小数
+    CI95 <-round(cox1$conf.int[,4],2)
+    #将提取到的信息放入表格中（Uni_cox_model）
+    Uni_cox_model<- data.frame(
+      names <-rownames(cox1$conf.int),#第1列为亚变量名
+      'HR' = HR,#第2列为HR值
+      'CI5' = CI5,#第3列为95%ci下区间
+      'CI95' = CI95,#第4列为95%ci上区间
+      'P' = PValue)#第5列为P值
+    return(Uni_cox_model)#返回，开始，进行循环
+  }  
+#选择需要进行单因素Cox的变量
+#查看原始数据变量的名字
+names(aa)
+#输入想要进行单因素分析的变量的序号（变量所在原始数据的列数）
+#这里我选择了示例数据第1-9列的变量进行分析
+variable.names<- colnames(aa)[c(1:9)];variable.names
+
+#进行单因素Cox回归分析输出结果
+Uni_cox <- lapply(variable.names, Uni_cox_model)
+Uni_cox<- ldply(Uni_cox,data.frame)
+#将95%CI连接起来
+Uni_cox$HR.CI95<-paste0(Uni_cox$HR," (",Uni_cox$CI5,'-',Uni_cox$CI95,")");Uni_cox
+#如图，表格已制作完成，但是我们一般需要的是表格的第1,5,6列。
+#单因素后p<0.05的指标：Age,Race,Grade,T,N,Marriage,Chemotherapy,Radiotherapy
+#删除2-4列，只保留上述第1,5,6列
+Uni_cox<-Uni_cox[,-2:-4] 
+#第一列列名为'Characteristics'
+colnames(Uni_cox)[1] <- 'Characteristics';Uni_cox
+
+write.csv(Uni_cox,"单因素Cox回归三线表.csv")
+}
+head(Uni_cox)
+#批量多因素
+{
+library(broom)
+library(tableone)  
+library(survival)
+
+#多因素分析
+mul_cox<-coxph(Surv(time,status==1)~Age+Race+Grade+T+N+
+                 Marriage+Chemotherapy+Radiotherapy,
+               data=aa);summary(mul_cox)
+
+#提取HR.P.95%CI
+multi1<-ShowRegTable(mul_cox, 
+                     exp=TRUE, 
+                     digits=2, 
+                     pDigits =3,
+                     printToggle = TRUE, 
+                     quote=FALSE, 
+                     ciFun=confint)
+
+#提取回归系数、统计量等                     
+multi2<-tidy(mul_cox);multi2
+
+#将两次提取结果合并
+multi<-cbind(multi1,multi2);multi
+#导出数据
+write.csv(multi,file="Multi.csv")
+}
+
+#构建列线图
+{
+#加载R包
+#install.packages("rms")
+library(rms)
+str(aa)
+
+#加载数据,重要
+nomo<-datadist(aa)
+options(datadist='nomo')
+units(aa$time) <- "Month"  
+#构建多因素回归模型
+nomo1 <- cph(Surv(time,status==1)~Age+Race+T+N+
+               Marriage+Chemotherapy+Radiotherapy,
+             x=T,y=T,
+             data=aa,
+             surv=T,
+             time.inc = 12*5);nomo1
+#结果汇报了每个变量的p值，回归系数β等
+
+#R²：评价模型拟合情况
+
+#Dxy：计算C指数：C-index=Dxy/2+0.5
+
+#回归系数β（coef）：列线图中的分数以此为基础计算
+
+#或者直接计算C指数
+Cindex <- rcorrcens(Surv(as.numeric(aa$time),aa$status==1)~predict(nomo1));Cindex 
+#C-index =1-c；=aDxy/2+0.5 ;se=sd/2；标准误=标准差/2；
+#95%CI=c-index +/- 1.96*se ；
+
+
+#设置预测时间
+#里预测3个：1,3,5年
+surv <- Survival(nomo1)#使用刚才构建的模型预测
+surv1 <- function(x)surv(12*1,lp=x)
+surv2 <- function(x)surv(12*3,lp=x)
+surv3 <- function(x)surv(12*5,lp=x)
+
+#构建列线图
+
+nomo2<-nomogram(nomo1,
+                #1.感兴趣的预测时间
+                fun=list(surv1,surv2,surv3),
+                #2. 预测时间段的名字
+                funlabel=c('1-year OS',
+                           '3-year OS',
+                           '5-year OS'),
+                #3.是否显示回归系数轴，一般为F
+                lp =T, 
+                #4.#分数为百分制
+                maxscale=100,
+                #5.设置预测生存率的范围【根据自己数据修改】
+                fun.at=c("0.99","0.95",'0.9','0.8',
+                         '0.7','0.6','0.5','0.4',
+                         '0.3','0.2','0.1')
+);plot(nomo2)
+#列线图优化
+plot(nomo2, 
+     xfrac=.35, #1.变量与图形的占比
+     cex.var=1, #2.变量字体加粗
+     cex.axis=0.8,#3.数轴：字体的大小
+     tcl=-0.5,#4.数轴：刻度的长度
+     lmgp=0.3, #5.数轴：文字与刻度的距离
+     label.every=1, #6.数轴：刻度下的文字，1=连续显示，2=隔一个显示一个
+     naxes=13,#7.1个页面有几个数轴(这个可以压缩行间距)
+     col.grid=gray(c(0.8, 0.95)),#8.垂直线的颜色.
+     lplabel="Linear Predictorlp", #9.线性预测轴名字
+     points.label='Points', #10变量分数名字
+     total.points.label='Total Points',#11总分名字
+     force.label=T
+)
+}
+
+#绘制校准曲线
+{
+#5年校准图
+  p<- calibrate(nomo1,#模型名称
+              cmethod='KM',
+              method='boot',#检测方法
+              u=12*5,#评估的时间，注：一定要与模型的时间一致
+              m=1500, #每次抽样的样本量，
+              B=500)#抽样次数
+#注，m值的确定：m=数据总数/3-4,即你想让最终的校准曲线有3个点，那就是m=数据总数/3
+#绘制校准图
+plot(p,
+     add=F,#增加第二条线
+     conf.int=T,#95%CI
+     subtitles = T,#副标题
+     cex.subtitles=0.8, #副标题大小
+     lwd=2,#95%CI粗细
+     lty=1,#95%CI实线，2=虚线
+     errbar.col="blue",#95%CI颜色
+     xlim=c(0.0,1),#x轴范围
+     ylim=c(0.0,1),
+     xlab="列线图预测的5年OS",http://127.0.0.1:45033/graphics/plot_zoom_png?width=1522&height=842
+     ylab="实际5年OS",
+     col="red")#曲线颜色
+#优化校准曲线
+plot(p,
+     add=F,
+     conf.int=T,#95%CI（蓝色线）http://127.0.0.1:45033/graphics/plot_zoom_png?width=1522&height=842
+     subtitles = F,#关闭副标题
+     cex.subtitles=0.8, 
+     lwd=2,
+     lty=1,
+     errbar.col="blue",
+     xlim=c(0.3,0.95),#调节x.y轴刻度范围
+     ylim=c(0.3,0.95),
+     xlab="列线图预测OS",
+     ylab="实际OS",
+     col="red")
+
+
+#3年校准曲线
+
+nomo1_1<- cph(Surv(time,status==1)~Age+Race+T+N+
+               Marriage+Chemotherapy+Radiotherapy,
+             x=T,y=T,
+             data=aa,
+             surv=T,
+             time.inc = 12*3);nomo1_1
+
+p_1<- calibrate(nomo1_1,
+              cmethod='KM',
+              method='boot',
+              u=12*3,
+              m=1500, 
+              B=500)
+
+
+plot(p_1,
+     add=T,
+     conf.int=T,
+     subtitles = F,
+     cex.subtitles=0.8, 
+     lwd=2,
+     lty=1,
+     errbar.col="orange",
+     xlim=c(0.3,0.95),
+     ylim=c(0.3,0.95),
+     xlab="列线图预测OS",
+     ylab="实际OS",
+     col="#407600")
+
+#加上图例
+legend("bottomright", legend=c("5年", "3年"), col=c("red", "407600"), lwd=2)
+#调整对角线
+abline(0,1,lty=3,lwd=1,col="grey")
+}
+
+#网页计算器
+{
+#install.packages("DynNom")
+library(DynNom)#动态化包
+
+#生成动态列线图
+DynNom(nomo1) 
+#关闭上步动态列线图网页
+DNbuilder(nomo1) 
+#生成脚本文件（在工作目录下）
+}
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+#流行病学进阶（GEE,MLM)C
+
+
+#2023-12-20-R语言练习-时序分析{
+https://mp.weixin.qq.com/s/BWB5wO2NFOncnfNROJ8svA
+```{r}
+getwd()
+#install.packages("forecast")
+#install.packages("tseries")
+library(forecast) #载入所需包
+library(tseries) #载入所需包
+data(Nile) #打开数据集
+head(Nile,100)
+plot(Nile)
+```
+返回结果P >0.05，不拒绝原假设，即序列不平稳：
+```{r}
+
+ADF<-adf.test(Nile) #单位根检验
+ADF
+ndiffs(Nile) #返回差分阶数d
+dNile<-diff(Nile) #差分处理   
+plot(dNile) #观察差分处理后的图形是否平稳
+```
+
+```{r}
+
+ADF<-adf.test(dNile) #单位根检验
+ADF
+
+Box.test(dNile, type="Ljung-Box")
+```
+白噪声序列是指白噪声序列/纯随机性序列：不存在规律，没有预测价值；
+平稳非白噪声序列：即序列均值和方差都为常数，适用模型为AR模型、MA模型、ARMA模型；
+非平稳序列：将其转化（差分）为平稳序列，再用平稳序列的方法拟合，适用模型为ARIMA、ARCH模型、GARCH模型及其衍生模型。
+```{r}
+
+fit<-auto.arima(Nile) #R语言相对最优模型识别命令
+fit
+accuracy(fit)
+
+shapiro.test(fit$residuals) #Shapiro-Wilk正态性检验
+
+Box.test(fit$residuals,type="Ljung-Box") #残差白噪声检验
+```
+```{r}
+#模型预测
+
+forecast(fit,3) #预测3年
+plot(forecast(fit,3),xlab="Year",ylab="Annual Flow") #绘制预测图
+```
+}
+
+
+
+
+#kegg可视化功能注释{
+
+
+
+```{r}
+
+
+
+```
+}
+#微生物-代谢共发生概率
+
+{
+
+
+}
+
+#初老研究基线特征表
+{
+```{r}
+# 安装包
+#install.packages("tableone")  
+#加载R包
+library(tableone)
+#清理运行环境
+rm(list = ls()) 
+
+#设置工作目录的路径
+#在R语言中，路径需要用双反斜杠“\”来表示，因为反斜杠在R语言中是转义字符
+#setwd("D:\\Research\\R\\meisi")
+#读入数据
+aa<- read.csv('TNBC.csv')
+
+#查看数据前6行
+head(aa)
+#查看数据性质
+str(aa)
+#批量转因子
+for (i in names(aa)[c(1,2,3,4,5,6,7,8,9,11)]){aa[,i] <- as.factor(aa[,i])}
+#基线表
+#连续变量正态性检验
+shapiro.test(aa$time)#p＞0.05才符合正态分布
+#基线中出现的变量
+myVars <- c("Age","Race","Grade", "T", "N",  "Laterality", 
+            "Marriage", "Chemotherapy", 
+            "Radiotherapy","time","status")#11个变量
+#基线中出现的分类变量
+catVars <- c("Age","Race","Grade", "T", "N",  "Laterality", 
+            "Marriage", "Chemotherapy", 
+            "Radiotherapy","status")#10个变量
+## 指定哪些变量是非正态分布变量
+nonvar <- c("time")  
+#构建Table 函数
+table<- CreateTableOne(vars = myVars,       
+                       factorVars = catVars, 
+                       data = aa,  #源数据
+                       addOverall = TRUE)  #增加overall列
+
+#输出结果
+table1 <- print(table,  
+                showAllLevels=TRUE, #显示所有变量
+                nonnormal = nonvar) 
+table1
+#保存至Excel
+#write.csv(table1, file = "table1.csv")
+
+
+
+```
+
+```{r}
+#install.packages("autoReg")
+install.packages("openxlsx")
+library(moonBook)
+library(autoReg)
+data(acs)
+gaze(~Age+职业+皮肤类型+现在-身高(米)+现在-体重(公斤)+开始使用护肤品年龄+吸烟状态+饮酒状态,data=a)
+gaze(~Age+吸烟状态+饮酒状态,data=a)
+library(openxlsx)
+getwd()
+a<- read.xlsx("/Users/liuyizhou/Desktop/2024年/SCI论文-已发表/2024年毕业论文/毕业论文数据/基线特征数据集.xlsx",1)
+# 您的 gaze 函数调用
+colnames(a)
+gaze(皮肤类型~.,data=a,method=3,show.p=TRUE)
+gaze_result <- gaze(皮肤类型~.,data=a,method=3,show.p=TRUE)
+?gaze
+# 输出到 Excel 文件
+write.xlsx(gaze_result, file = "gaze_output.xlsx")
+getwd()
+
+
+
+```
+```{r}
+library(tableone)
+library(openxlsx)
+
+# 假设您的数据集已经加载到 R 中，数据集名为 data
+# 数据集列名应该与您提供的一致
+
+# 指定连续变量和分类变量
+continuousVars <- c("Age", "现在-身高(米)", "现在-体重(公斤)", "开始使用护肤品年龄")
+categoricalVars <- c("职业", "皮肤类型", "吸烟状态", "饮酒状态")
+
+# 创建 TableOne 对象
+tableOne <- CreateTableOne(vars = c(continuousVars, categoricalVars), data = aa, test = FALSE)
+
+# 查看表格
+print(tableOne)
+
+# 导出到 Excel 文件
+#write.xlsx(as.data.frame(tableOne), file = "TableOne.xlsx")
+
+# 在您的 R 环境中运行此脚本后，将会生成名为 "TableOne.xlsx" 的 Excel 文件
+
+```
+
+
+
+}
+
+#表型变化时间点分析
+确保数据集格式适合分析，其中一列是年龄，其余列是不同的表型。
+
+3. 变化点分析
+对每个表型进行变化点分析，找出变化发生的年龄点。这段代码会对每个表型进行变化点分析，寻找均值发生变化的点。cpt.mean 函数用于寻找序列中均值的变化点，cpts 函数用于提取变化点的位置。结果将以列表形式返回，每个表型对应一个变化点的位置。
+将您的数据视为时间序列的考虑因素：
+数据排序：数据应按年龄顺序排列。如果样本年龄是随机收集的，那么数据可能需要先按年龄排序。
+
+年龄分布：样本的年龄分布会影响分析。理想情况下，年龄分布应该覆盖整个研究范围，没有大的空白区间。
+
+样本代表性：每个年龄点的表型数据需要代表该年龄段的典型或平均情况。这通常需要一个较大的样本量来确保结果的可靠性。
+
+独立性：在传统的时间序列分析中，数据点通常是相互独立的。在您的案例中，如果不同样本之间的表型值是独立的，这将更接近时间序列数据的特性。
+
+分析目的：您的分析目标也会影响数据是否应被视为时间序列。例如，如果您想分析随年龄增长表型的变化趋势，将数据视为时间序列可能是合适的。
+
+分析方法：
+如果您决定将数据视为时间序列进行分析，您可能需要使用适合时间序列的统计方法，如变化点分析、时间序列回归分析等。如果您的分析目的是比较不同年龄组之间的差异，那么传统的统计方法（如ANOVA、卡方检验等）可能更适合。
+
+总之，您的数据可以在一定条件下被视作时间序列数据，但需要考虑上述因素，并选择适合您数据特性和分析目标的方法。
+```{r}
+install.packages("changepoint")
+library(changepoint)
+# 假设 data 是包含年龄和表型的数据框
+
+# 变化点分析
+change_points <- lapply(data[, -1], function(phenotype) {
+  # 对每个表型应用变化点分析
+  cp <- cpt.mean(phenotype)
+  return(cpts(cp))
+})
+
+# 结果展示
+names(change_points) <- names(data[, -1])
+print(change_points)
+
+```
+
+
+#xgboost 来分析初老的预测模型
+getwd()
+
+```{r}
+install.packages("xgboost")
+install.packages("caret")
+install.packages("xlsx")
+library(xgboost)
+library(caret)
+install.packages("readxl")
+
+
+# 假设你的数据已经加载到R中，名称为dataframe，并且目标变量列名为"target"
+
+```
+
+
+
+```{r}
+library(xgboost)
+library(caret)
+library(readxl)
+# 加载数据
+
+
+# 读取.xlsx文件
+data <- read_excel("./2023年九月-9个初老指标的预测_去除Y2.xlsx")  # 替换为您文件的实际路径
+#("./2023年九月-9个初老指标的预测_去除Y2.xlsx",1,header=T) # 替换为您数据的路径
+sum(is.na(data))  # 检查数据中的NA值数量
+
+# 准备数据
+data_matrix <- as.matrix(data[, -which(names(data) == "Age")])
+label_vector <- as.vector(data[["Age"]])
+
+# 定义XGBoost参数
+params <- list(
+  booster = "gbtree",
+  objective = "reg:squarederror",
+  eta = 0.1,
+  gamma = 0,
+  max_depth = 6,
+  min_child_weight = 1,
+  subsample = 1,
+  colsample_bytree = 1
+)
+
+# 留一法交叉验证
+n <- nrow(data)
+r2_scores <- numeric(n)
+
+for (i in 1:n) {
+  train_index <- setdiff(1:n, i)
+  dtrain <- xgb.DMatrix(data = data_matrix[train_index, ], label = label_vector[train_index])
+  dtest <- xgb.DMatrix(data = data_matrix[i, , drop = FALSE], label = label_vector[i])
+
+  model <- xgboost(params = params, data = dtrain, nrounds = 100, verbose = 0)
+  prediction <- predict(model, dtest)
+  
+  r2_scores[i] <- cor(prediction, label_vector[i])^2
+}
+
+mean_r2_score <- mean(r2_scores)
+print(mean_r2_score)
+# 计算总体预测值与实际值之间的相关系数的平方
+total_r2_score <- cor(prediction, label_vector)^2
+print(total_r2_score)
+```
+
+
+```{r}
+
+
+
+```
+
